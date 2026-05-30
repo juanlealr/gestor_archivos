@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "PsE1ZlfFJ6w=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\juanl\\Documents\\Sistemas Operativos\\FileManagerApp\\FileManager.Core\\FileManager.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\juanl\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.8\\microsoft.extensions.dependencyinjection.10.0.8.nupkg.sha512",
+    "C:\\Users\\juanl\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.8\\microsoft.extensions.dependencyinjection.abstractions.10.0.8.nupkg.sha512",
+    "C:\\Users\\juanl\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512"
+  ],
+  "logs": []
+}
