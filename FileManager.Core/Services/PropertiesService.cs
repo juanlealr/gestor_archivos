@@ -108,7 +108,7 @@ namespace FileManager.Core.Services
                 FullPath = info.FullName,
                 Type = "Carpeta de archivos",
                 Location = info.Parent?.FullName ?? string.Empty,
-                SizeBytes = 0,       // Se calcula async con GetFolderSizeAsync
+                SizeBytes = 0,
                 SizeOnDisk = 0,
                 CreatedAt = info.CreationTime,
                 ModifiedAt = info.LastWriteTime,
@@ -130,7 +130,6 @@ namespace FileManager.Core.Services
             try
             {
                 var info = new FileInfo(filePath);
-                // Aproximación: redondear al múltiplo de 4096 bytes (cluster típico NTFS)
                 const long clusterSize = 4096;
                 return ((info.Length + clusterSize - 1) / clusterSize) * clusterSize;
             }

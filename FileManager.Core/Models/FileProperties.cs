@@ -22,7 +22,7 @@ namespace FileManager.Core.Models
         public bool IsSystem { get; set; }
         public bool IsArchive { get; set; }
 
-        // Solo para carpetas
+        // Solo para carpetas o directorios
         public int ContainsFiles { get; set; }
         public int ContainsFolders { get; set; }
 

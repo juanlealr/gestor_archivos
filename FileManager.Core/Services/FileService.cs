@@ -6,7 +6,7 @@ namespace FileManager.Core.Services
 {
     /// <summary>
     /// Implementación principal del servicio de archivos.
-    /// Gestiona toda la interacción con System.IO.
+    /// Gestiona toda la interacción con System.IO., la libreria que permite interactuar con el SO.
     /// </summary>
     public class FileService : IFileService, IDisposable
     {
@@ -211,7 +211,6 @@ namespace FileManager.Core.Services
                 if (string.IsNullOrWhiteSpace(newName))
                     throw new ArgumentException("El nuevo nombre no puede estar vacío.");
 
-                // Valida caracteres inválidos en nombres de archivo
                 char[] invalid = Path.GetInvalidFileNameChars();
                 if (newName.Any(c => invalid.Contains(c)))
                     throw new ArgumentException($"El nombre '{newName}' contiene caracteres inválidos.");
@@ -276,7 +275,6 @@ namespace FileManager.Core.Services
 
                 try
                 {
-                    // Busca archivos
                     foreach (var file in Directory.EnumerateFiles(rootPath, $"*{pattern}*", option))
                     {
                         try
@@ -298,7 +296,6 @@ namespace FileManager.Core.Services
                         catch (UnauthorizedAccessException) { }
                     }
 
-                    // Busca carpetas
                     foreach (var dir in Directory.EnumerateDirectories(rootPath, $"*{pattern}*", option))
                     {
                         try
@@ -426,10 +423,9 @@ namespace FileManager.Core.Services
 
         private static string ResolveLnk(string lnkPath)
         {
-            // Requiere Windows Shell. Si no puede resolverlo, devuelve el mismo path.
             try
             {
-                var shell = new object(); // placeholder, usa Shell32 si quieres resolución completa
+                var shell = new object();
                 return lnkPath;
             }
             catch { return lnkPath; }

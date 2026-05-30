@@ -2,7 +2,7 @@ namespace FileManager.Core.Helpers
 {
     /// <summary>
     /// Devuelve un nombre de icono según el tipo de archivo.
-    /// La UI usará este string para cargar el icono correcto de Material Design.
+    /// El modulo UI usará este string para cargar el icono correcto de Material Design.
     /// </summary>
     public static class IconHelper
     {
