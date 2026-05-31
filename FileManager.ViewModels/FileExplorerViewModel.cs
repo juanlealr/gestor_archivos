@@ -24,6 +24,7 @@ namespace FileManager.ViewModels
         private ICommand? _navigateBackCommand;
         private ICommand? _navigateForwardCommand;
         private ICommand? _navigateToPathCommand;
+        private ICommand? _navigateToBreadcrumbCommand;
 
         public FileExplorerViewModel(IFileService fileService)
         {
@@ -159,6 +160,22 @@ namespace FileManager.ViewModels
             _navigateToPathCommand ??= new RelayCommand<string>(async path =>
             {
                 if (!string.IsNullOrEmpty(path))
+                {
+                    if (!string.IsNullOrEmpty(CurrentPath))
+                        _backHistory.Push(CurrentPath);
+                    
+                    _forwardHistory.Clear();
+                    await NavigateToAsync(path);
+                }
+            });
+
+        /// <summary>
+        /// Comando para navegar desde el breadcrumb.
+        /// </summary>
+        public ICommand NavigateToBreadcrumbCommand =>
+            _navigateToBreadcrumbCommand ??= new RelayCommand<string>(async path =>
+            {
+                if (!string.IsNullOrEmpty(path) && path != CurrentPath)
                 {
                     if (!string.IsNullOrEmpty(CurrentPath))
                         _backHistory.Push(CurrentPath);
