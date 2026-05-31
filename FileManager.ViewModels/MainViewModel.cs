@@ -10,14 +10,18 @@ namespace FileManager.ViewModels
     public class MainViewModel : ViewModelBase
     {
         private readonly IFileService _fileService;
+        private readonly IClipboardService _clipboardService;
+        private readonly IDialogService _dialogService;
         private FileExplorerViewModel? _fileExplorerViewModel;
 
-        public MainViewModel(IFileService fileService)
+        public MainViewModel(IFileService fileService, IClipboardService clipboardService, IDialogService dialogService)
         {
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-            
+            _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+
             // Inicializar el FileExplorerViewModel
-            FileExplorerViewModel = new FileExplorerViewModel(_fileService);
+            FileExplorerViewModel = new FileExplorerViewModel(_fileService, _clipboardService, _dialogService);
         }
 
         /// <summary>

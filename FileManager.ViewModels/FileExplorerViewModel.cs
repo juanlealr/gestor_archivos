@@ -1,4 +1,6 @@
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using FileManager.Core.Models;
 using FileManager.Core.Services;
@@ -12,9 +14,11 @@ namespace FileManager.ViewModels
     public class FileExplorerViewModel : ViewModelBase
     {
         private readonly IFileService _fileService;
+        private readonly IClipboardService _clipboardService;
+        private readonly IDialogService _dialogService;
         private readonly Stack<string> _backHistory = new();
         private readonly Stack<string> _forwardHistory = new();
-        
+
         private string _currentPath = "";
         private FileSystemItem? _selectedItem;
         private bool _isLoading;
@@ -25,10 +29,19 @@ namespace FileManager.ViewModels
         private ICommand? _navigateForwardCommand;
         private ICommand? _navigateToPathCommand;
         private ICommand? _navigateToBreadcrumbCommand;
+        private ICommand? _newItemCommand;
+        private ICommand? _cutCommand;
+        private ICommand? _copyCommand;
+        private ICommand? _pasteCommand;
+        private ICommand? _renameCommand;
+        private ICommand? _deleteCommand;
+        private ICommand? _navigateToDriveCommand;
 
-        public FileExplorerViewModel(IFileService fileService)
+        public FileExplorerViewModel(IFileService fileService, IClipboardService clipboardService, IDialogService dialogService)
         {
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             _items = new ObservableCollection<FileSystemItem>();
             _drives = new ObservableCollection<DriveInfoModel>();
         }
@@ -179,9 +192,157 @@ namespace FileManager.ViewModels
                 {
                     if (!string.IsNullOrEmpty(CurrentPath))
                         _backHistory.Push(CurrentPath);
-                    
+
                     _forwardHistory.Clear();
                     await NavigateToAsync(path);
+                }
+            });
+
+        /// <summary>
+        /// Comando para crear una nueva carpeta.
+        /// </summary>
+        public ICommand NewItemCommand =>
+            _newItemCommand ??= new RelayCommand<string>(async path =>
+            {
+                if (string.IsNullOrEmpty(path)) return;
+
+                try
+                {
+                    var folderName = _dialogService.ShowInputDialog("Nueva Carpeta", "Nueva Carpeta");
+
+                    if (!string.IsNullOrEmpty(folderName))
+                    {
+                        await _fileService.CreateFolderAsync(path, folderName);
+                        await LoadDirectoryAsync(path);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error al crear carpeta: {ex.Message}");
+                }
+            });
+
+        /// <summary>
+        /// Comando para cortar un archivo/carpeta.
+        /// </summary>
+        public ICommand CutCommand =>
+            _cutCommand ??= new RelayCommand<FileSystemItem?>(item =>
+            {
+                if (item != null)
+                {
+                    _clipboardService.CutPath(item.FullPath);
+                }
+            });
+
+        /// <summary>
+        /// Comando para copiar un archivo/carpeta.
+        /// </summary>
+        public ICommand CopyCommand =>
+            _copyCommand ??= new RelayCommand<FileSystemItem?>(item =>
+            {
+                if (item != null)
+                {
+                    _clipboardService.CopyPath(item.FullPath);
+                }
+            });
+
+        /// <summary>
+        /// Comando para pegar un archivo/carpeta.
+        /// </summary>
+        public ICommand PasteCommand =>
+            _pasteCommand ??= new RelayCommand<string>(async path =>
+            {
+                if (string.IsNullOrEmpty(path)) return;
+
+                try
+                {
+                    var clipboardPath = _clipboardService.GetClipboardPath();
+                    if (string.IsNullOrEmpty(clipboardPath)) return;
+
+                    var itemName = Path.GetFileName(clipboardPath);
+                    var destinationPath = Path.Combine(path, itemName);
+
+                    if (_clipboardService.IsCutOperation)
+                    {
+                        await _fileService.MoveAsync(clipboardPath, destinationPath, overwrite: false);
+                        _clipboardService.Clear();
+                    }
+                    else
+                    {
+                        await _fileService.CopyAsync(clipboardPath, destinationPath, overwrite: false);
+                    }
+
+                    await LoadDirectoryAsync(path);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error al pegar: {ex.Message}");
+                }
+            },
+            path => !string.IsNullOrEmpty(_clipboardService.GetClipboardPath()));
+
+        /// <summary>
+        /// Comando para renombrar un archivo/carpeta.
+        /// </summary>
+        public ICommand RenameCommand =>
+            _renameCommand ??= new RelayCommand<FileSystemItem?>(async item =>
+            {
+                if (item == null) return;
+
+                try
+                {
+                    var currentName = Path.GetFileName(item.FullPath);
+                    var newName = _dialogService.ShowInputDialog("Renombrar", currentName);
+
+                    if (!string.IsNullOrEmpty(newName) && newName != currentName)
+                    {
+                        await _fileService.RenameAsync(item.FullPath, newName);
+                        if (!string.IsNullOrEmpty(CurrentPath))
+                            await LoadDirectoryAsync(CurrentPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error al renombrar: {ex.Message}");
+                }
+            });
+
+        /// <summary>
+        /// Comando para eliminar un archivo/carpeta.
+        /// </summary>
+        public ICommand DeleteCommand =>
+            _deleteCommand ??= new RelayCommand<FileSystemItem?>(async item =>
+            {
+                if (item == null) return;
+
+                try
+                {
+                    if (_dialogService.ShowConfirmDialog("Confirmar eliminación", $"¿Está seguro de que desea eliminar '{item.Name}'?"))
+                    {
+                        await _fileService.DeleteAsync(item.FullPath, recursive: true);
+                        if (!string.IsNullOrEmpty(CurrentPath))
+                            await LoadDirectoryAsync(CurrentPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error al eliminar: {ex.Message}");
+                }
+            });
+
+        /// <summary>
+        /// Comando para navegar a una unidad de disco.
+        /// </summary>
+        public ICommand NavigateToDriveCommand =>
+            _navigateToDriveCommand ??= new RelayCommand<DriveInfoModel?>(async drive =>
+            {
+                if (drive != null && drive.IsReady)
+                {
+                    if (!string.IsNullOrEmpty(CurrentPath))
+                        _backHistory.Push(CurrentPath);
+
+                    _forwardHistory.Clear();
+                    await NavigateToAsync(drive.Name);
                 }
             });
 

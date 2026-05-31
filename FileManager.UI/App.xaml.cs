@@ -4,6 +4,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using FileManager.Core.Services;
 using FileManager.ViewModels;
+using FileManager.UI.Services;
 
 namespace FileManager.UI;
 
@@ -29,10 +30,12 @@ public partial class App : Application
 
         // Registrar servicios
         services.AddSingleton<IFileService, FileService>();
-        
+        services.AddSingleton<IClipboardService, ClipboardService>();
+        services.AddSingleton<IDialogService, DialogService>();
+
         // Registrar ViewModels
         services.AddSingleton<MainViewModel>();
-        
+
         // Registrar ventanas
         services.AddSingleton<MainWindow>();
 
