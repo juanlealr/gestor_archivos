@@ -36,6 +36,8 @@ namespace FileManager.ViewModels
         private ICommand? _renameCommand;
         private ICommand? _deleteCommand;
         private ICommand? _navigateToDriveCommand;
+        private ICommand? _changeViewCommand;
+        private int _viewMode = 0; // 0=Detalles, 1=Lista, 2=Iconos
 
         public FileExplorerViewModel(IFileService fileService, IClipboardService clipboardService, IDialogService dialogService)
         {
@@ -92,6 +94,36 @@ namespace FileManager.ViewModels
             get => _drives;
             set => SetProperty(ref _drives, value);
         }
+
+        /// <summary>
+        /// Modo de vista actual (0=Detalles, 1=Lista, 2=Iconos).
+        /// </summary>
+        public int ViewMode
+        {
+            get => _viewMode;
+            set
+            {
+                SetProperty(ref _viewMode, value);
+                OnPropertyChanged(nameof(IsDetailsView));
+                OnPropertyChanged(nameof(IsListView));
+                OnPropertyChanged(nameof(IsIconsView));
+            }
+        }
+
+        /// <summary>
+        /// Indica si la vista actual es Detalles.
+        /// </summary>
+        public bool IsDetailsView => ViewMode == 0;
+
+        /// <summary>
+        /// Indica si la vista actual es Lista.
+        /// </summary>
+        public bool IsListView => ViewMode == 1;
+
+        /// <summary>
+        /// Indica si la vista actual es Iconos.
+        /// </summary>
+        public bool IsIconsView => ViewMode == 2;
 
         #endregion
 
@@ -344,6 +376,15 @@ namespace FileManager.ViewModels
                     _forwardHistory.Clear();
                     await NavigateToAsync(drive.Name);
                 }
+            });
+
+        /// <summary>
+        /// Comando para cambiar el modo de vista.
+        /// </summary>
+        public ICommand ChangeViewCommand =>
+            _changeViewCommand ??= new RelayCommand<int>(mode =>
+            {
+                ViewMode = mode;
             });
 
         #endregion

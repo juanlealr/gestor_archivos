@@ -55,10 +55,11 @@
 
                 <Separator Background="{StaticResource BorderBrush}" Width="1" Margin="5,2"/>
 
-                <ComboBox Width="120" SelectedIndex="0" Margin="15,0,5,0" VerticalAlignment="Center">
-                    <ComboBoxItem Content="Ver: Detalles"/>
-                    <ComboBoxItem Content="Ver: Lista"/>
-                    <ComboBoxItem Content="Ver: Iconos"/>
+                <ComboBox Width="130" SelectedIndex="{Binding FileExplorerViewModel.ViewMode}"
+                          Margin="15,0,5,0" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}">
+                    <ComboBoxItem Content="Detalles" Tag="0"/>
+                    <ComboBoxItem Content="Lista" Tag="1"/>
+                    <ComboBoxItem Content="Iconos" Tag="2"/>
                 </ComboBox>
             </StackPanel>
         </Border>
@@ -91,16 +92,58 @@
         <GridSplitter Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Background="Transparent"/>
 
         <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource SurfaceBrush}" CornerRadius="5" Margin="0,10,10,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-            <ListView x:Name="FilesListView" ItemsSource="{Binding FileExplorerViewModel.Items}" SelectedItem="{Binding FileExplorerViewModel.SelectedItem}">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Name}" Width="250"/>
-                        <GridViewColumn Header="Tipo" DisplayMemberBinding="{Binding DisplayType}" Width="150"/>
-                        <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding DisplaySize}" Width="120"/>
-                        <GridViewColumn Header="Fecha Modificación" DisplayMemberBinding="{Binding ModifiedAt, StringFormat='yyyy-MM-dd HH:mm'}" Width="170"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+            <Grid>
+                <!-- Vista Detalles (GridView) -->
+                <ListView x:Name="DetailsView" ItemsSource="{Binding FileExplorerViewModel.Items}"
+                          SelectedItem="{Binding FileExplorerViewModel.SelectedItem}"
+                          Visibility="{Binding FileExplorerViewModel.IsDetailsView, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Name}" Width="250"/>
+                            <GridViewColumn Header="Tipo" DisplayMemberBinding="{Binding DisplayType}" Width="150"/>
+                            <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding DisplaySize}" Width="120"/>
+                            <GridViewColumn Header="Fecha Modificación" DisplayMemberBinding="{Binding ModifiedAt, StringFormat='yyyy-MM-dd HH:mm'}" Width="170"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <!-- Vista Lista -->
+                <ListView x:Name="ListViewMode" ItemsSource="{Binding FileExplorerViewModel.Items}"
+                          SelectedItem="{Binding FileExplorerViewModel.SelectedItem}"
+                          Visibility="{Binding FileExplorerViewModel.IsListView, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" Padding="10,5" FontSize="12"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <!-- Vista Iconos -->
+                <ItemsControl ItemsSource="{Binding FileExplorerViewModel.Items}"
+                              Visibility="{Binding FileExplorerViewModel.IsIconsView, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Background="White" Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Width="100" Height="100" Margin="5">
+                                <Border Background="#F0F0F0" CornerRadius="4" BorderBrush="#DDDDDD" BorderThickness="1">
+                                    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding IsDirectory, Converter={StaticResource DirectoryIconConverter}}"
+                                                       FontSize="32" HorizontalAlignment="Center" Margin="0,5"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="10" HorizontalAlignment="Center"
+                                                       TextAlignment="Center" TextWrapping="Wrap" MaxWidth="90"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
         </Border>
 
         <StatusBar Grid.Row="3" Grid.ColumnSpan="3" Background="#EEEEEE">
