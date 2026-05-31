@@ -26,7 +26,6 @@
         <!-- Convertidores -->
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <converters:DirectoryIconConverter x:Key="DirectoryIconConverter"/>
-        <converters:ViewModeConverter x:Key="ViewModeConverter"/>
 
         <!-- Estilos Globales -->
         <Style TargetType="Button" x:Key="MaterialButton">
