@@ -4,8 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FileManager.UI"
+        xmlns:converters="clr-namespace:FileManager.UI.Converters"
         mc:Ignorable="d"
         Title="Gestor de Archivos" Height="600" Width="1000">
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:DirectoryIconConverter x:Key="DirectoryIconConverter"/>
+    </Window.Resources>
     <Grid Background="#F5F5F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -94,7 +99,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="120"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding IsDirectory, StringFormat='{0}'}" 
+                                        <TextBlock Grid.Column="0" Text="{Binding IsDirectory, Converter={StaticResource DirectoryIconConverter}}" 
                                                    VerticalAlignment="Center" FontSize="14" Width="20"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Name}" 
                                                    VerticalAlignment="Center" Margin="5,0,0,0"/>
