@@ -58,7 +58,7 @@ public partial class MainWindow : Window
             // Inicializar árbol de carpetas
             if (_treeViewControl != null)
             {
-                _treeViewControl.BuildTree(new List<string>());
+                _treeViewControl.BuildTree();
             }
 
             // Cargar unidades al abrir

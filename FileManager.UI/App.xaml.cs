@@ -52,8 +52,8 @@ public partial class App : Application
         // Establecer el DataContext
         mainWindow.DataContext = mainViewModel;
         
-        // Inicializar el ViewModel (cargar datos iniciales)
-        mainViewModel.InitializeAsync();
+        // Inicializar el ViewModel de forma asincrónica en background
+        _ = mainViewModel.InitializeAsync();
         
         // Mostrar la ventana
         mainWindow.Show();

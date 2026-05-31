@@ -14,6 +14,7 @@ namespace FileManager.UI.Controls
         public bool IsExpanded { get; set; }
         public bool IsSelected { get; set; }
         public ObservableCollection<TreeNode> Children { get; set; } = new();
+        public bool IsLoaded { get; set; } = false;
     }
 
     public partial class TreeViewControl : UserControl
@@ -25,7 +26,13 @@ namespace FileManager.UI.Controls
             TreeNodes = new ObservableCollection<TreeNode>();
             InitializeComponent();
             DataContext = this;
-            Loaded += (s, e) => BuildTree(new List<string>());
+            Loaded += TreeViewControl_Loaded;
+        }
+
+        private void TreeViewControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Cargar solo las unidades al inicio (rápido)
+            BuildTree();
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -45,7 +52,19 @@ namespace FileManager.UI.Controls
             }
         }
 
-        public void BuildTree(List<string> folderPaths)
+        private void TreeView_Expanded(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is TreeViewItem item && item.DataContext is TreeNode node)
+            {
+                // Cargar hijos bajo demanda cuando se expande el nodo
+                if (!node.IsLoaded)
+                {
+                    LoadChildrenAsync(node);
+                }
+            }
+        }
+
+        public void BuildTree()
         {
             TreeNodes.Clear();
 
@@ -54,47 +73,79 @@ namespace FileManager.UI.Controls
                 var drives = DriveInfo.GetDrives();
                 foreach (var drive in drives)
                 {
-                    var driveNode = new TreeNode
-                    {
-                        Name = drive.Name.TrimEnd('\\'),
-                        FullPath = drive.Name
-                    };
-
-                    PopulateFolder(driveNode, drive.Name);
-                    TreeNodes.Add(driveNode);
-                }
-            }
-            catch { }
-        }
-
-        private void PopulateFolder(TreeNode parentNode, string folderPath)
-        {
-            try
-            {
-                var subDirectories = Directory.GetDirectories(folderPath);
-                foreach (var subDir in subDirectories)
-                {
                     try
                     {
-                        var dirInfo = new DirectoryInfo(subDir);
-                        var childNode = new TreeNode
+                        var driveNode = new TreeNode
                         {
-                            Name = dirInfo.Name,
-                            FullPath = dirInfo.FullName
+                            Name = drive.Name.TrimEnd('\\'),
+                            FullPath = drive.Name,
+                            IsLoaded = false
                         };
 
-                        // Solo expandir si existen subdirectorios
-                        if (Directory.GetDirectories(subDir).Length > 0)
-                        {
-                            PopulateFolder(childNode, subDir);
-                        }
-
-                        parentNode.Children.Add(childNode);
+                        TreeNodes.Add(driveNode);
                     }
                     catch { }
                 }
             }
             catch { }
+        }
+
+        private void LoadChildrenAsync(TreeNode parentNode)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    var children = new List<TreeNode>();
+                    
+                    try
+                    {
+                        var subDirectories = Directory.GetDirectories(parentNode.FullPath);
+                        
+                        foreach (var subDir in subDirectories)
+                        {
+                            try
+                            {
+                                var dirInfo = new DirectoryInfo(subDir);
+                                var childNode = new TreeNode
+                                {
+                                    Name = dirInfo.Name,
+                                    FullPath = dirInfo.FullName,
+                                    IsLoaded = false
+                                };
+
+                                // Verificar si tiene subdirectorios
+                                try
+                                {
+                                    if (Directory.GetDirectories(subDir).Length > 0)
+                                    {
+                                        // Agregar un nodo dummy solo si hay subdirectorios
+                                        childNode.Children.Add(new TreeNode { Name = "...", FullPath = "" });
+                                    }
+                                }
+                                catch { }
+
+                                children.Add(childNode);
+                            }
+                            catch { }
+                        }
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (DirectoryNotFoundException) { }
+
+                    // Actualizar en el UI thread
+                    Dispatcher.Invoke(() =>
+                    {
+                        parentNode.Children.Clear();
+                        foreach (var child in children)
+                        {
+                            parentNode.Children.Add(child);
+                        }
+                        parentNode.IsLoaded = true;
+                    });
+                }
+                catch { }
+            });
         }
     }
 }

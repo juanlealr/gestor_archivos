@@ -99,7 +99,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="120"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding IsDirectory, StringFormat='{0}'}" 
+                                        <TextBlock Grid.Column="0" Text="{Binding IsDirectory, StringFormat='{}{0}'}" 
                                                    VerticalAlignment="Center" FontSize="14" Width="20"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Name}" 
                                                    VerticalAlignment="Center" Margin="5,0,0,0"/>
