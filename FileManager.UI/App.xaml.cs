@@ -28,9 +28,7 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         // Registrar servicios
-        // TODO: Implementar FileService cuando esté listo
-        // Por ahora, se puede usar un mock para pruebas
-        // services.AddSingleton<IFileService, FileService>();
+        services.AddSingleton<IFileService, FileService>();
         
         // Registrar ViewModels
         services.AddSingleton<MainViewModel>();
