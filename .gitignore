@@ -1,0 +1,100 @@
+# Carpetas de compilación
+bin/
+obj/
+out/
+
+# Archivos de compilación
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.iml
+*.user
+*.userprefs
+
+# Archivos temporales de Visual Studio
+*.tmp
+*.temp
+*~
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# Rider
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+*.lnk
+
+# Entity Framework
+*.db
+*.db-shm
+*.db-wal
+
+# LocalDB
+*.mdf
+*.ldf
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# BeatPulse healthcheck temp database
+healthchecksdb
+
+# Backup files
+*.bak
+
+# Coverage reports
+coverage/
+OpenCover/
+
+# ReSharper
+_ReSharper*/
+*.resharper
+*.resharper.user
+
+# AppSettings local
+appsettings.local.json
+
+# Temporary files
+temp/
+tmp/
