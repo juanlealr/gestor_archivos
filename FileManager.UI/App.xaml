@@ -130,13 +130,8 @@
         </Style>
 
         <!--
-            FIX 1: ModernListViewItem
-            Problema original: el ControlTemplate usaba <ContentPresenter/> genérico, que no sabe
-            renderizar las columnas de un GridView. Solo mostraba el primer campo (Name porque es
-            el ToString() del modelo). La solución es usar <GridViewRowPresenter/> que sí entiende
-            las columnas definidas en el GridView del ListView padre.
-            El trigger de selección ahora usa TargetName="RowPresenter" para cambiar el foreground
-            correctamente sobre el presentador de columnas en lugar del item completo.
+            ModernListViewItem — vista Detalles (GridView).
+            Usa GridViewRowPresenter para renderizar correctamente las columnas del GridView.
         -->
         <Style TargetType="ListViewItem" x:Key="ModernListViewItem">
             <Setter Property="Padding" Value="8,6"/>
@@ -165,6 +160,40 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
                                 <Setter TargetName="RowPresenter" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--
+            ModernListViewItemSimple — vista Lista (ItemTemplate con TextBlock).
+            Usa ContentPresenter genérico porque no hay GridView con columnas.
+        -->
+        <Style TargetType="ListViewItem" x:Key="ModernListViewItemSimple">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="4"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
