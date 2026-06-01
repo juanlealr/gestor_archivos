@@ -383,6 +383,10 @@ namespace FileManager.Core.Services
             _watcher.Deleted += (s, e) => FileDeleted?.Invoke(this, e);
             _watcher.Changed += (s, e) => FileChanged?.Invoke(this, e);
             _watcher.Renamed += (s, e) => FileRenamed?.Invoke(this, e);
+            _watcher.Error += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"[FileWatcher] Error: {e.GetException()?.Message}");
+            };
         }
 
         // ─────────────────────────────────────────────────────────────

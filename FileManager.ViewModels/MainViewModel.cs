@@ -33,6 +33,18 @@ namespace FileManager.ViewModels
                 fileService ?? throw new ArgumentNullException(nameof(fileService)),
                 clipboardService ?? throw new ArgumentNullException(nameof(clipboardService)),
                 dialogService ?? throw new ArgumentNullException(nameof(dialogService)));
+
+            _fileExplorerViewModel.PropertyChanged += OnChildPropertyChanged;
+            _fileOperationsViewModel.PropertyChanged += OnChildPropertyChanged;
+        }
+
+        private void OnChildPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FileExplorerViewModel.StatusMessage) ||
+                e.PropertyName == nameof(FileOperationsViewModel.StatusMessage))
+            {
+                OnPropertyChanged(nameof(DisplayStatusMessage));
+            }
         }
 
         /// <summary>
@@ -49,6 +61,14 @@ namespace FileManager.ViewModels
         /// ViewModel que expone operaciones de archivos y estado de operación.
         /// </summary>
         public FileOperationsViewModel FileOperationsViewModel => _fileOperationsViewModel;
+
+        /// <summary>
+        /// Mensaje de estado combinado de explorador y operaciones.
+        /// </summary>
+        public string? DisplayStatusMessage =>
+            !string.IsNullOrEmpty(FileExplorerViewModel.StatusMessage)
+                ? FileExplorerViewModel.StatusMessage
+                : FileOperationsViewModel.StatusMessage;
 
         /// <summary>
         /// ViewModel responsable de la selección múltiple y operaciones por lotes.

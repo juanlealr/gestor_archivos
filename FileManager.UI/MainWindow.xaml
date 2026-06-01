@@ -85,10 +85,9 @@
                     <ProgressBar Width="120" Height="20" Margin="10,0,5,0"
                                  Value="{Binding FileOperationsViewModel.CurrentProgress.Percentage, FallbackValue=0, Mode=OneWay}"
                                  Visibility="{Binding FileOperationsViewModel.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <TextBlock Text="{Binding FileOperationsViewModel.StatusMessage}"
+                    <TextBlock Text="{Binding DisplayStatusMessage}"
                                VerticalAlignment="Center"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               Visibility="{Binding FileOperationsViewModel.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Content="Propiedades" Margin="0,0,0,0" Style="{StaticResource MaterialOutlineButton}" Padding="8,4" Width="90" HorizontalAlignment="Right"
@@ -161,14 +160,23 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <ItemsControl ItemsSource="{Binding FileExplorerViewModel.Items}"
-                              Visibility="{Binding FileExplorerViewModel.IsIconsView, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <ItemsControl.ItemsPanel>
+                <ListBox x:Name="IconsView" ItemsSource="{Binding FileExplorerViewModel.Items}"
+                         SelectedItem="{Binding FileExplorerViewModel.SelectedItem}"
+                         SelectionMode="Extended"
+                         ContextMenu="{StaticResource FileContextMenu}"
+                         Visibility="{Binding FileExplorerViewModel.IsIconsView, Converter={StaticResource BoolToVisibilityConverter}}"
+                         SelectionChanged="OnListSelectionChanged"
+                         MouseDoubleClick="OnItemDoubleClick"
+                         Background="White"
+                         BorderThickness="0"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Background="White" Orientation="Horizontal"/>
+                            <WrapPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Width="100" Height="100" Margin="5">
                                 <Border Background="#F0F0F0" CornerRadius="4" BorderBrush="#DDDDDD" BorderThickness="1">
@@ -183,8 +191,8 @@
                                 </Border>
                             </Grid>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </Grid>
         </Border>
 

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using FileManager.Core.Models;
 using FileManager.Core.Services;
@@ -11,7 +13,7 @@ namespace FileManager.ViewModels
     /// ViewModel para la exploración de archivos con soporte para navegación,
     /// selección de elementos y gestión del historial.
     /// </summary>
-    public class FileExplorerViewModel : ViewModelBase
+    public class FileExplorerViewModel : ViewModelBase, IDisposable
     {
         private readonly IFileService _fileService;
         private readonly IClipboardService _clipboardService;
@@ -24,6 +26,7 @@ namespace FileManager.ViewModels
         private bool _isLoading;
         private ObservableCollection<FileSystemItem> _items;
         private ObservableCollection<DriveInfoModel> _drives;
+        private string? _statusMessage;
         private ICommand? _openFileCommand;
         private ICommand? _navigateBackCommand;
         private ICommand? _navigateForwardCommand;
@@ -37,7 +40,7 @@ namespace FileManager.ViewModels
         private ICommand? _deleteCommand;
         private ICommand? _navigateToDriveCommand;
         private ICommand? _changeViewCommand;
-        private int _viewMode = 0; // 0=Detalles, 1=Lista, 2=Iconos
+        private int _viewMode = 2; // 0=Detalles, 1=Lista, 2=Iconos
 
         public FileExplorerViewModel(IFileService fileService, IClipboardService clipboardService, IDialogService dialogService)
         {
@@ -46,6 +49,12 @@ namespace FileManager.ViewModels
             _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             _items = new ObservableCollection<FileSystemItem>();
             _drives = new ObservableCollection<DriveInfoModel>();
+
+            // Suscribirse a eventos del FileService
+            _fileService.FileCreated += OnFileCreated;
+            _fileService.FileDeleted += OnFileDeleted;
+            _fileService.FileChanged += OnFileChanged;
+            _fileService.FileRenamed += OnFileRenamed;
         }
 
         #region Propiedades
@@ -84,6 +93,15 @@ namespace FileManager.ViewModels
         {
             get => _items;
             set => SetProperty(ref _items, value);
+        }
+
+        /// <summary>
+        /// Mensaje de estado para operaciones de pegado y errores de explorador.
+        /// </summary>
+        public string? StatusMessage
+        {
+            get => _statusMessage;
+            private set => SetProperty(ref _statusMessage, value);
         }
 
         /// <summary>
@@ -289,29 +307,81 @@ namespace FileManager.ViewModels
                 try
                 {
                     var clipboardPath = _clipboardService.GetClipboardPath();
-                    if (string.IsNullOrEmpty(clipboardPath)) return;
+                    if (string.IsNullOrEmpty(clipboardPath))
+                    {
+                        SetStatus("No hay nada para pegar.");
+                        return;
+                    }
 
                     var itemName = Path.GetFileName(clipboardPath);
+                    if (string.IsNullOrEmpty(itemName))
+                    {
+                        SetStatus("La ruta del portapapeles no es válida.");
+                        return;
+                    }
+
                     var destinationPath = Path.Combine(path, itemName);
+                    var normalizedSource = Path.GetFullPath(clipboardPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    var normalizedDestination = Path.GetFullPath(destinationPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
                     if (_clipboardService.IsCutOperation)
                     {
+                        if (string.Equals(normalizedSource, normalizedDestination, StringComparison.OrdinalIgnoreCase))
+                        {
+                            SetStatus($"No se puede mover '{itemName}' a la misma ubicación.");
+                            return;
+                        }
+
+                        if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
+                        {
+                            SetStatus($"No se puede mover '{itemName}' porque ya existe un elemento con el mismo nombre en '{path}'.");
+                            return;
+                        }
+
                         await _fileService.MoveAsync(clipboardPath, destinationPath, overwrite: false);
                         _clipboardService.Clear();
+                        SetStatus($"'{itemName}' movido a '{path}'.");
                     }
                     else
                     {
-                        await _fileService.CopyAsync(clipboardPath, destinationPath, overwrite: false);
+                        var uniqueDestination = GetUniqueDestinationPath(destinationPath);
+                        await _fileService.CopyAsync(clipboardPath, uniqueDestination, overwrite: false);
+                        var copiedName = Path.GetFileName(uniqueDestination);
+                        SetStatus($"'{copiedName}' copiado a '{path}'.");
                     }
 
                     await LoadDirectoryAsync(path);
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error al pegar: {ex.Message}");
+                    var message = $"Error al pegar: {ex.Message}";
+                    SetStatus(message);
+                    System.Diagnostics.Debug.WriteLine(message);
                 }
             },
             path => !string.IsNullOrEmpty(_clipboardService.GetClipboardPath()));
+
+        private static string GetUniqueDestinationPath(string destinationPath)
+        {
+            if (!File.Exists(destinationPath) && !Directory.Exists(destinationPath))
+                return destinationPath;
+
+            var directory = Path.GetDirectoryName(destinationPath) ?? string.Empty;
+            var name = Path.GetFileNameWithoutExtension(destinationPath);
+            var extension = Path.GetExtension(destinationPath);
+            var current = destinationPath;
+            var index = 1;
+
+            do
+            {
+                var suffix = index == 1 ? " - Copia" : $" - Copia ({index})";
+                current = Path.Combine(directory, name + suffix + extension);
+                index++;
+            }
+            while (File.Exists(current) || Directory.Exists(current));
+
+            return current;
+        }
 
         /// <summary>
         /// Comando para renombrar un archivo/carpeta.
@@ -453,6 +523,9 @@ namespace FileManager.ViewModels
                 }
 
                 SelectedItem = null;
+
+                // Activar el watcher para este directorio
+                _fileService.WatchDirectory(path);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -469,5 +542,145 @@ namespace FileManager.ViewModels
         }
 
         #endregion
+
+        private void SetStatus(string message)
+        {
+            StatusMessage = message;
+            System.Diagnostics.Debug.WriteLine($"[FileExplorerViewModel] {message}");
+        }
+
+        /// <summary>
+        /// Helper para construir un FileSystemItem desde una ruta.
+        /// </summary>
+        private static FileSystemItem? BuildItem(string path)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    var dir = new DirectoryInfo(path);
+                    return new FileSystemItem
+                    {
+                        Name = dir.Name,
+                        FullPath = dir.FullName,
+                        IsDirectory = true,
+                        Size = 0,
+                        CreatedAt = dir.CreationTime,
+                        ModifiedAt = dir.LastWriteTime,
+                        AccessedAt = dir.LastAccessTime,
+                        Extension = string.Empty,
+                        Attributes = dir.Attributes
+                    };
+                }
+                else if (File.Exists(path))
+                {
+                    var file = new FileInfo(path);
+                    return new FileSystemItem
+                    {
+                        Name = file.Name,
+                        FullPath = file.FullName,
+                        IsDirectory = false,
+                        Size = file.Length,
+                        CreatedAt = file.CreationTime,
+                        ModifiedAt = file.LastWriteTime,
+                        AccessedAt = file.LastAccessTime,
+                        Extension = file.Extension,
+                        Attributes = file.Attributes
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al construir item: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Manejador para archivos creados.
+        /// </summary>
+        private void OnFileCreated(object? sender, FileSystemEventArgs e)
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                // No agregar si ya existe
+                if (Items.Any(i => i.FullPath == e.FullPath)) return;
+
+                var newItem = BuildItem(e.FullPath);
+                if (newItem != null)
+                {
+                    Items.Add(newItem);
+                    System.Diagnostics.Debug.WriteLine($"[FileWatcher] Creado: {e.Name}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Manejador para archivos eliminados.
+        /// </summary>
+        private void OnFileDeleted(object? sender, FileSystemEventArgs e)
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                var item = Items.FirstOrDefault(i => i.FullPath == e.FullPath);
+                if (item != null)
+                {
+                    Items.Remove(item);
+                    System.Diagnostics.Debug.WriteLine($"[FileWatcher] Eliminado: {e.Name}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Manejador para cambios en archivos.
+        /// </summary>
+        private void OnFileChanged(object? sender, FileSystemEventArgs e)
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                var item = Items.FirstOrDefault(i => i.FullPath == e.FullPath);
+                if (item == null) return;
+
+                var idx = Items.IndexOf(item);
+                var updated = BuildItem(e.FullPath);
+                if (updated != null)
+                {
+                    Items[idx] = updated;
+                    System.Diagnostics.Debug.WriteLine($"[FileWatcher] Modificado: {e.Name}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Manejador para archivos renombrados.
+        /// </summary>
+        private void OnFileRenamed(object? sender, RenamedEventArgs e)
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                var item = Items.FirstOrDefault(i => i.FullPath == e.OldFullPath);
+                if (item == null) return;
+
+                var idx = Items.IndexOf(item);
+                var updated = BuildItem(e.FullPath);
+                if (updated != null)
+                {
+                    Items[idx] = updated;
+                    System.Diagnostics.Debug.WriteLine($"[FileWatcher] Renombrado: {e.OldName} -> {e.Name}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Limpia las suscripciones a eventos.
+        /// </summary>
+        public void Dispose()
+        {
+            _fileService.FileCreated -= OnFileCreated;
+            _fileService.FileDeleted -= OnFileDeleted;
+            _fileService.FileChanged -= OnFileChanged;
+            _fileService.FileRenamed -= OnFileRenamed;
+        }
     }
 }

@@ -54,12 +54,29 @@ namespace FileManager.UI
                 var selectedItems = listView.SelectedItems.OfType<FileSystemItem>().ToList();
                 _viewModel.SelectionViewModel.SetSelectedItems(selectedItems);
             }
+            else if (sender is ListBox listBox)
+            {
+                var selectedItems = listBox.SelectedItems.OfType<FileSystemItem>().ToList();
+                _viewModel.SelectionViewModel.SetSelectedItems(selectedItems);
+            }
         }
 
         private void OnItemDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (_viewModel == null) return;
-            if (sender is ListView listView && listView.SelectedItem is FileSystemItem item)
+            
+            FileSystemItem? item = null;
+            
+            if (sender is ListView listView && listView.SelectedItem is FileSystemItem lvItem)
+            {
+                item = lvItem;
+            }
+            else if (sender is ListBox listBox && listBox.SelectedItem is FileSystemItem lbItem)
+            {
+                item = lbItem;
+            }
+
+            if (item != null)
             {
                 if (item.IsDirectory)
                 {

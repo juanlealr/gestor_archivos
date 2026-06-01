@@ -35,5 +35,8 @@ namespace FileManager.Core.Services
         event EventHandler<FileSystemEventArgs>? FileDeleted;
         event EventHandler<FileSystemEventArgs>? FileChanged;
         event EventHandler<RenamedEventArgs>? FileRenamed;
+
+        // Monitoreo de cambios en archivos
+        void WatchDirectory(string path);
     }
 }
