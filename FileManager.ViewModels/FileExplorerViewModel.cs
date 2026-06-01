@@ -304,23 +304,27 @@ namespace FileManager.ViewModels
             {
                 if (string.IsNullOrEmpty(path)) return;
 
+                string? itemName = null;
+                var destinationPath = string.Empty;
+                var clipboardPath = string.Empty;
+
                 try
                 {
-                    var clipboardPath = _clipboardService.GetClipboardPath();
+                    clipboardPath = _clipboardService.GetClipboardPath();
                     if (string.IsNullOrEmpty(clipboardPath))
                     {
                         SetStatus("No hay nada para pegar.");
                         return;
                     }
 
-                    var itemName = Path.GetFileName(clipboardPath);
+                    itemName = Path.GetFileName(clipboardPath);
                     if (string.IsNullOrEmpty(itemName))
                     {
                         SetStatus("La ruta del portapapeles no es válida.");
                         return;
                     }
 
-                    var destinationPath = Path.Combine(path, itemName);
+                    destinationPath = Path.Combine(path, itemName);
                     var normalizedSource = Path.GetFullPath(clipboardPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                     var normalizedDestination = Path.GetFullPath(destinationPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
@@ -328,13 +332,13 @@ namespace FileManager.ViewModels
                     {
                         if (string.Equals(normalizedSource, normalizedDestination, StringComparison.OrdinalIgnoreCase))
                         {
-                            SetStatus($"No se puede mover '{itemName}' a la misma ubicación.");
+                            ShowError($"No se puede mover '{itemName}' a la misma ubicación.");
                             return;
                         }
 
                         if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
                         {
-                            SetStatus($"No se puede mover '{itemName}' porque ya existe un elemento con el mismo nombre en '{path}'.");
+                            ShowError($"No se puede mover '{itemName}' porque ya existe un elemento con el mismo nombre en '{path}'.");
                             return;
                         }
 
@@ -351,6 +355,28 @@ namespace FileManager.ViewModels
                     }
 
                     await LoadDirectoryAsync(path);
+                }
+                catch (IOException ex)
+                {
+                    var lowercase = ex.Message.ToLowerInvariant();
+                    var safeName = string.IsNullOrEmpty(itemName) ? "el archivo" : itemName;
+
+                    if (lowercase.Contains("ya existe") || lowercase.Contains("already exists"))
+                    {
+                        var message = $"No se puede mover '{safeName}' porque ya existe un elemento con el mismo nombre en '{path}'.";
+                        SetStatus(message);
+                        System.Diagnostics.Debug.WriteLine(message);
+                    }
+                    else if (lowercase.Contains("same file") || lowercase.Contains("same path") || lowercase.Contains("source and destination path are the same"))
+                    {
+                        var message = $"No se puede mover '{safeName}' a la misma ubicación.";
+                        ShowError(message);
+                    }
+                    else
+                    {
+                        var message = $"Error al pegar: {ex.Message}";
+                        ShowError(message);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -547,6 +573,12 @@ namespace FileManager.ViewModels
         {
             StatusMessage = message;
             System.Diagnostics.Debug.WriteLine($"[FileExplorerViewModel] {message}");
+        }
+
+        private void ShowError(string message)
+        {
+            SetStatus(message);
+            MessageBox.Show(message, "Error al pegar", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         /// <summary>
