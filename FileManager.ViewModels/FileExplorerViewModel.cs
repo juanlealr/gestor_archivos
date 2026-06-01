@@ -40,7 +40,7 @@ namespace FileManager.ViewModels
         private ICommand? _deleteCommand;
         private ICommand? _navigateToDriveCommand;
         private ICommand? _changeViewCommand;
-        private int _viewMode = 2; // 0=Detalles, 1=Lista, 2=Iconos
+        private int _viewMode = 1; // 0=Detalles, 1=Iconos
 
         public FileExplorerViewModel(IFileService fileService, IClipboardService clipboardService, IDialogService dialogService)
         {
@@ -114,7 +114,7 @@ namespace FileManager.ViewModels
         }
 
         /// <summary>
-        /// Modo de vista actual (0=Detalles, 1=Lista, 2=Iconos).
+        /// Modo de vista actual (0=Detalles, 1=Iconos).
         /// </summary>
         public int ViewMode
         {
@@ -134,14 +134,14 @@ namespace FileManager.ViewModels
         public bool IsDetailsView => ViewMode == 0;
 
         /// <summary>
-        /// Indica si la vista actual es Lista.
+        /// Indica si la vista actual es Lista (obsoleto - ya no se usa).
         /// </summary>
-        public bool IsListView => ViewMode == 1;
+        public bool IsListView => false;
 
         /// <summary>
         /// Indica si la vista actual es Iconos.
         /// </summary>
-        public bool IsIconsView => ViewMode == 2;
+        public bool IsIconsView => ViewMode == 1;
 
         #endregion
 

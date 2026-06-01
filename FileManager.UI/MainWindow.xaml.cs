@@ -29,10 +29,10 @@ namespace FileManager.UI
             _viewModel.SelectionViewModel.SetSourceItems(_viewModel.FileExplorerViewModel.Items);
 
             DetailsView.SelectionChanged += OnListSelectionChanged;
-            ListViewMode.SelectionChanged += OnListSelectionChanged;
+            IconsView.SelectionChanged += OnListSelectionChanged;
 
             DetailsView.MouseDoubleClick += OnItemDoubleClick;
-            ListViewMode.MouseDoubleClick += OnItemDoubleClick;
+            IconsView.MouseDoubleClick += OnItemDoubleClick;
         }
 
         private async void NavigationViewModel_NavigationChanged(object? sender, NavigationChangedEventArgs e)

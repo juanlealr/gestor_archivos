@@ -147,7 +147,6 @@
                         <TextBlock Text="Ver:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{StaticResource TextBrush}"/>
                         <ComboBox Width="120" SelectedIndex="{Binding FileExplorerViewModel.ViewMode, Mode=TwoWay}">
                             <ComboBoxItem Content="Detalles"/>
-                            <ComboBoxItem Content="Lista"/>
                             <ComboBoxItem Content="Iconos"/>
                         </ComboBox>
                     </StackPanel>
@@ -226,27 +225,6 @@
                     </ListView.View>
                 </ListView>
 
-                <ListView x:Name="ListViewMode" ItemsSource="{Binding FileExplorerViewModel.Items}"
-                          SelectedItem="{Binding FileExplorerViewModel.SelectedItem}"
-                          SelectionMode="Extended"
-                          Visibility="{Binding FileExplorerViewModel.IsListView, Converter={StaticResource BoolToVisibilityConverter}}"
-                          SelectionChanged="OnListSelectionChanged"
-                          MouseDoubleClick="OnItemDoubleClick"
-                          ItemContainerStyle="{StaticResource FileListViewItemContextMenuStyle}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Converter={StaticResource FileIconConverter}}"
-                                           FontFamily="{StaticResource IconFontFamily}"
-                                           FontSize="15"
-                                           Foreground="{StaticResource PrimaryBrush}"
-                                           Margin="0,0,7,0"
-                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Name}" Padding="0,8" FontSize="13" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
 
                 <ListBox x:Name="IconsView" ItemsSource="{Binding FileExplorerViewModel.Items}"
                          SelectedItem="{Binding FileExplorerViewModel.SelectedItem}"
