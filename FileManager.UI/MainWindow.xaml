@@ -7,6 +7,12 @@
         mc:Ignorable="d"
         Title="Gestor de Archivos - MVP " Height="600" Width="900">
 
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+C" Command="{Binding FileExplorerViewModel.CopyCommand}" CommandParameter="{Binding FileExplorerViewModel.SelectedItem}"/>
+        <KeyBinding Gesture="Ctrl+X" Command="{Binding FileOperationsViewModel.MoveCommand}" CommandParameter="{Binding FileExplorerViewModel.SelectedItem}"/>
+        <KeyBinding Gesture="Ctrl+V" Command="{Binding FileExplorerViewModel.PasteCommand}" CommandParameter="{Binding FileExplorerViewModel.CurrentPath}"/>
+    </Window.InputBindings>
+
     <Window.Resources>
         <ContextMenu x:Key="FileContextMenu">
             <MenuItem Header="Abrir"
