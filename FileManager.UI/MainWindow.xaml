@@ -37,7 +37,14 @@
             <Button Content="Ir" Width="72" DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource MaterialButton}"
                     Command="{Binding NavigationViewModel.NavigateToCommand}"
                     CommandParameter="{Binding Text, ElementName=AddressTextBox}"/>
-            <TextBox x:Name="AddressTextBox" Style="{StaticResource AddressTextBoxStyle}" Text="{Binding FileExplorerViewModel.CurrentPath, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/> 
+
+            <!-- Border wrapper da el CornerRadius; el TextBox sin ControlTemplate propio
+                 respeta el Foreground del sistema correctamente -->
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8"
+                    Background="White" VerticalAlignment="Center">
+                <TextBox x:Name="AddressTextBox" Style="{StaticResource AddressTextBoxStyle}"
+                         Text="{Binding FileExplorerViewModel.CurrentPath, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
+            </Border>
         </DockPanel>
 
         <Border Grid.Row="1" Grid.ColumnSpan="3" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1" Padding="10,5">
