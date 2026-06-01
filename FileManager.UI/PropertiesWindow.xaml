@@ -1,0 +1,67 @@
+<Window x:Class="FileManager.UI.PropertiesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Propiedades" Height="480" Width="520" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Propiedades" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Nombre:" Grid.Row="0" Grid.Column="0" Margin="0,0,10,8" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Properties.Name}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                <TextBlock Text="Ruta:" Grid.Row="1" Grid.Column="0" Margin="0,0,10,8" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Properties.FullPath}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                <TextBlock Text="Tipo:" Grid.Row="2" Grid.Column="0" Margin="0,0,10,8" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Properties.Type}" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Tamaño:" Grid.Row="3" Grid.Column="0" Margin="0,0,10,8" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding DisplayFolderSize}" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Creado:" Grid.Row="4" Grid.Column="0" Margin="0,0,10,8" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Properties.CreatedAt, StringFormat='yyyy-MM-dd HH:mm'}" Grid.Row="4" Grid.Column="1" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Modificado:" Grid.Row="5" Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Properties.ModifiedAt, StringFormat='yyyy-MM-dd HH:mm'}" Grid.Row="5" Grid.Column="1" Margin="0,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Atributos" FontWeight="Bold" Margin="0,0,0,8"/>
+                <CheckBox Content="Solo lectura" IsChecked="{Binding IsReadOnly}" Margin="0,0,0,6"/>
+                <CheckBox Content="Oculto" IsChecked="{Binding IsHidden}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,10,0,0" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Right">
+            <Button Content="Guardar" Width="90" Margin="0,0,8,0" Padding="10,6"
+                    Command="{Binding SaveAttributesCommand}"/>
+            <Button Content="Cancelar" Width="90" Padding="10,6" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

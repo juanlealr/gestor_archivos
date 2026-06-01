@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              Height="40" Background="#F9F9F9" BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
     <Grid Margin="10,0" VerticalAlignment="Center">
-        <ItemsControl ItemsSource="{Binding Path=BreadcrumbItems}">
+        <ItemsControl ItemsSource="{Binding Breadcrumbs}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"/>
@@ -15,22 +15,55 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding DataContext.FileExplorerViewModel.NavigateToBreadcrumbCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding Path}"
-                                Content="{Binding DisplayName}"
+                        <Button Content="{Binding DisplayName}"
+                                Command="{Binding DataContext.NavigationViewModel.NavigateToBreadcrumbCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding FullPath}"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Padding="5,0"
                                 Foreground="#0078D4"
                                 FontSize="12"
                                 Cursor="Hand">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLast}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <TextBlock Text="{TemplateBinding Content}" TextDecorations="Underline"/>
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <TextBlock Text="›" Margin="3,0" VerticalAlignment="Center" Foreground="#999999" FontSize="12"/>
+                        <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{StaticResource TextBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLast}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="›" Margin="3,0" VerticalAlignment="Center" Foreground="#999999" FontSize="12">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLast}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </StackPanel>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

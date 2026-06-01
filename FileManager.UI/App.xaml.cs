@@ -19,6 +19,33 @@ public partial class App : Application
     public App()
     {
         _serviceProvider = ConfigureServices();
+        this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+    }
+
+    private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    {
+        LogException("DispatcherUnhandledException", e.Exception);
+        e.Handled = false;
+    }
+
+    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+            LogException("UnhandledException", ex);
+        else
+            LogException("UnhandledExceptionObject", new Exception(e.ExceptionObject?.ToString()));
+    }
+
+    private void LogException(string source, Exception ex)
+    {
+        try
+        {
+            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "wpf_error_log.txt");
+            var text = $"{DateTime.Now:O} [{source}] {ex}\r\n";
+            System.IO.File.AppendAllText(path, text);
+        }
+        catch { }
     }
 
     /// <summary>
@@ -32,8 +59,13 @@ public partial class App : Application
         services.AddSingleton<IFileService, FileService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<IPropertiesService, PropertiesService>();
 
         // Registrar ViewModels
+        services.AddSingleton<NavigationViewModel>();
+        services.AddSingleton<FileOperationsViewModel>();
+        services.AddSingleton<SelectionViewModel>();
+        services.AddSingleton<PropertiesViewModel>();
         services.AddSingleton<MainViewModel>();
 
         // Registrar ventanas
