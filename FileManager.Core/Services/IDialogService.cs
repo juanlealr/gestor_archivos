@@ -14,5 +14,10 @@ namespace FileManager.Core.Services
         /// Muestra un diálogo de confirmación.
         /// </summary>
         bool ShowConfirmDialog(string title, string message);
+
+        /// <summary>
+        /// Muestra un diálogo de error.
+        /// </summary>
+        void ShowError(string title, string message);
     }
 }

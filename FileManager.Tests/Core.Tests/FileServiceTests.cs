@@ -50,6 +50,18 @@ namespace FileManager.Tests.Core.Tests
         }
 
         [Fact]
+        public async Task RenameAsync_Throws_WhenDestinationFileAlreadyExists()
+        {
+            var original = Path.Combine(_testDir, "original.txt");
+            var existing = Path.Combine(_testDir, "existing.txt");
+            File.WriteAllText(original, "data");
+            File.WriteAllText(existing, "other");
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RenameAsync(original, "existing.txt"));
+            Assert.Contains("ya existe otro archivo", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
         public async Task DeleteAsync_DeletesFile_WhenFileExists()
         {
             var file = Path.Combine(_testDir, "borrar.txt");

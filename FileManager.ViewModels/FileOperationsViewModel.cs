@@ -238,6 +238,7 @@ namespace FileManager.ViewModels
                 OperationFailed?.Invoke(this, err);
                 SetStatus($"Error: acceso denegado.");
                 System.Diagnostics.Debug.WriteLine($"[FileOperationsViewModel] {err}");
+                _dialogService.ShowError(GetErrorTitle(successResult.Kind), err.ErrorMessage);
             }
             catch (IOException ex)
             {
@@ -245,6 +246,7 @@ namespace FileManager.ViewModels
                 OperationFailed?.Invoke(this, err);
                 SetStatus($"Error de I/O: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[FileOperationsViewModel] {err}");
+                _dialogService.ShowError(GetErrorTitle(successResult.Kind), err.ErrorMessage);
             }
             catch (Exception ex)
             {
@@ -252,6 +254,7 @@ namespace FileManager.ViewModels
                 OperationFailed?.Invoke(this, err);
                 SetStatus($"Error inesperado.");
                 System.Diagnostics.Debug.WriteLine($"[FileOperationsViewModel] {err}");
+                _dialogService.ShowError(GetErrorTitle(successResult.Kind), err.ErrorMessage);
             }
             finally
             {
@@ -265,6 +268,16 @@ namespace FileManager.ViewModels
             StatusMessage = message;
             System.Diagnostics.Debug.WriteLine($"[FileOperationsViewModel] {message}");
         }
+
+        private static string GetErrorTitle(FileOperationKind kind) => kind switch
+        {
+            FileOperationKind.Copy => "Error al copiar",
+            FileOperationKind.Move => "Error al mover",
+            FileOperationKind.NewFolder => "Error al crear carpeta",
+            FileOperationKind.Rename => "Error al renombrar",
+            FileOperationKind.Delete => "Error al eliminar",
+            _ => "Error de operación"
+        };
     }
 
     // ─── Tipos auxiliares ─────────────────────────────────────────────────────

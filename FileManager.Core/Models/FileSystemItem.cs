@@ -23,5 +23,10 @@ namespace FileManager.Core.Models
         // Para mostrar en la UI de forma amigable
         public string DisplaySize => IsDirectory ? "<Carpeta>" : FileSizeHelper.Format(Size);
         public string DisplayType => IsDirectory ? "Carpeta de archivos" : (Extension.TrimStart('.').ToUpper() + " File");
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

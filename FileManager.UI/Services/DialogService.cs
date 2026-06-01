@@ -35,5 +35,10 @@ namespace FileManager.UI.Services
             var result = MessageBox.Show(_mainWindow, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
             return result == MessageBoxResult.Yes;
         }
+
+        public void ShowError(string title, string message)
+        {
+            MessageBox.Show(_mainWindow, message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

@@ -219,11 +219,20 @@ namespace FileManager.Core.Services
                     ?? throw new InvalidOperationException("No se puede determinar el directorio padre.");
 
                 var newPath = Path.Combine(parent, newName);
+                var isDirectory = Directory.Exists(path);
 
                 if (File.Exists(newPath) || Directory.Exists(newPath))
-                    throw new InvalidOperationException($"Ya existe un elemento con el nombre '{newName}'.");
+                {
+                    if (isDirectory && Directory.Exists(newPath))
+                        throw new InvalidOperationException($"No se puede renombrar la carpeta porque ya existe otra carpeta con el nombre '{newName}' en esta ubicación.");
 
-                if (Directory.Exists(path))
+                    if (!isDirectory && File.Exists(newPath))
+                        throw new InvalidOperationException($"No se puede renombrar el archivo porque ya existe otro archivo con el nombre '{newName}' en esta ubicación.");
+
+                    throw new InvalidOperationException($"No se puede renombrar porque ya existe un elemento con el nombre '{newName}' en esta ubicación.");
+                }
+
+                if (isDirectory)
                     Directory.Move(path, newPath);
                 else
                     File.Move(path, newPath);
